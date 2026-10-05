@@ -629,9 +629,7 @@
 
   <div class="plan-card">
     <div class="plan-card-label">おすすめのプラン</div>
-    <div class="plan-name" id="plan-name"></div>
-    <div class="plan-desc" id="plan-desc"></div>
-    <div class="plan-price" id="plan-price"></div>
+    <div id="plan-list"></div>
   </div>
 
   <div class="pay-card">
@@ -750,7 +748,7 @@ setTimeout(() => {
 // 複数選択に対応：選ばれた各値の点数を合算する
 // ─── スコアテーブル（公平・バランス型 / 2026年3月改訂版）───────
 // 設計方針：各AIの実際の強みに基づいて均等配点
-// 理論最大スコア：ChatGPT=21 / Claude=20 / Gemini=22（2026年10月に計算し直し）
+// 理論最大スコア：ChatGPT=25 / Claude=22 / Gemini=24（2026年10月に計算し直し・Q4「まちがった答え」の横並びと、ChatGPTの加点追加の後の値）
 //
 // Q1 用途
 //   1:アイデア出し    → ChatGPT主力(+3), Gemini得意(+1)
@@ -765,17 +763,17 @@ setTimeout(() => {
 //   4:非常に長い  → Claude主力(+3), Gemini(+1)
 //
 // Q4 心配なこと（2026年10月に「ストレス」から聞き方を変更。1〜5の中身と点数は同じ）
-//   1:まちがった答え  → ChatGPT(+3)
+//   1:まちがった答え  → ChatGPT(+2), Claude(+2), Gemini(+2)  ← 3社横並び（どのAIが少ないか根拠が示せないため）
 //   2:文章が不自然    → Claude(+3)
-//   3:情報が古い      → Gemini(+3)
+//   3:情報が古い      → Gemini(+3), ChatGPT(+1)   ← ChatGPTにもネット検索あり
 //   4:上限で止まる    → ChatGPT(+2), Claude(+2), Gemini(+2)  ← 3社横並び
-//   5:使い方がむずかしい → Gemini(+2), Claude(+1)
+//   5:使い方がむずかしい → Gemini(+2), ChatGPT(+2), Claude(+1)   ← ChatGPT加点追加（使いやすさの定評）
 //   6:特にない・まだわからない → 加点なし（ほかの答えと同時に選べない）
 //
 // Q5 ほしい価値
 //   1:発想力・アイデア    → ChatGPT(+2), Gemini(+1)   ← Gemini加点追加
-//   2:論理性・丁寧な解説  → Claude(+2)
-//   3:最新情報・検索連携  → Gemini(+3)
+//   2:論理性・丁寧な解説  → Claude(+2), ChatGPT(+1)   ← ChatGPT加点追加
+//   3:最新情報・検索連携  → Gemini(+3), ChatGPT(+1)   ← ChatGPT加点追加（ネット検索あり）
 //   4:会話のテンポ        → ChatGPT(+2), Gemini(+1)   ← Gemini加点追加
 //   5:長文・ニュアンス    → Claude(+3), ChatGPT(+1)   ← ChatGPT加点追加
 //
@@ -787,21 +785,21 @@ const SCORE_TABLE = {
   chatgpt: {
     Q1: { 1:3, 2:1, 3:1, 4:2 },
     Q3: { 1:2, 2:1, 3:1, 4:0 },
-    Q4: { 1:3, 2:0, 3:0, 4:2, 5:0 },
-    Q5: { 1:2, 2:0, 3:0, 4:2, 5:1 },
+    Q4: { 1:2, 2:0, 3:1, 4:2, 5:2 },
+    Q5: { 1:2, 2:1, 3:1, 4:2, 5:1 },
     Q6: { 1:0, 2:1, 3:2 }
   },
   claude: {
     Q1: { 1:0, 2:3, 3:0, 4:1 },
     Q3: { 1:0, 2:1, 3:3, 4:3 },
-    Q4: { 1:0, 2:3, 3:0, 4:2, 5:1 },
+    Q4: { 1:2, 2:3, 3:0, 4:2, 5:1 },
     Q5: { 1:0, 2:2, 3:0, 4:0, 5:3 },
     Q6: { 1:0, 2:1, 3:2 }
   },
   gemini: {
     Q1: { 1:1, 2:0, 3:3, 4:2 },
     Q3: { 1:2, 2:1, 3:0, 4:1 },
-    Q4: { 1:0, 2:0, 3:3, 4:2, 5:2 },
+    Q4: { 1:2, 2:0, 3:3, 4:2, 5:2 },
     Q5: { 1:1, 2:0, 3:3, 4:1, 5:0 },  // 論理性(2)はClaudeの強みのため削除
     Q6: { 1:0, 2:1, 3:2 }
   }
@@ -1052,11 +1050,26 @@ function showResult() {
   document.getElementById('val-gemini').textContent  = gemini;
 
   // プラン
-  const planAI = isTied ? tied[0][0] : mainAI;
-  const plan = (PLANS[planAI] || PLANS['ChatGPT'])[q7] || PLANS[planAI][1];
-  document.getElementById('plan-name').textContent  = plan.name;
-  document.getElementById('plan-desc').textContent  = plan.desc;
-  document.getElementById('plan-price').textContent = plan.price;
+  // 同点のときは、同点のAIすべてのプランを並べる（順番が先のAIだけが出ないように）
+  const planList = document.getElementById('plan-list');
+  planList.innerHTML = '';
+  const planAIs = isTied ? tied.map(([k]) => k) : [mainAI];
+  planAIs.forEach((ai, i) => {
+    const plan = PLANS[ai][q7] || PLANS[ai][1];
+    const item = document.createElement('div');
+    if (i > 0) item.style.cssText = 'margin-top:16px;padding-top:16px;border-top:1px solid rgba(201,168,76,0.3);';
+    const name = document.createElement('div');
+    name.className = 'plan-name';
+    name.textContent = isTied ? `${ai}：${plan.name}` : plan.name;
+    const desc = document.createElement('div');
+    desc.className = 'plan-desc';
+    desc.textContent = plan.desc;
+    const price = document.createElement('div');
+    price.className = 'plan-price';
+    price.textContent = plan.price;
+    item.append(name, desc, price);
+    planList.appendChild(item);
+  });
 
   // 課金スコアメーター（最大11）
   const meterEl = document.getElementById('pay-meter');
