@@ -478,9 +478,10 @@
 
   <div class="question-card" data-q="2" data-single="true">
     <div class="q-num">質問 2</div>
-    <div class="q-text">AIを使う頻度はどのくらいですか？</div>
+    <div class="q-text">AIをどのくらい使っていますか？</div>
     <div class="multi-hint">1つ選んでください</div>
     <div class="choices">
+      <button class="choice-btn" data-val="0"><span class="choice-check">✓</span>まだ使ったことがない</button>
       <button class="choice-btn" data-val="1"><span class="choice-check">✓</span>月に数回程度</button>
       <button class="choice-btn" data-val="2"><span class="choice-check">✓</span>週1〜2回</button>
       <button class="choice-btn" data-val="3"><span class="choice-check">✓</span>週3〜5回</button>
@@ -513,14 +514,15 @@
 
   <div class="question-card" data-q="4">
     <div class="q-num">質問 4</div>
-    <div class="q-text">AIを使っていて感じるストレスは？</div>
+    <div class="q-text">AIを使うときに、心配なこと・気になることは？</div>
     <div class="multi-hint">当てはまるものをすべて選んでください</div>
     <div class="choices">
-      <button class="choice-btn" data-val="1"><span class="choice-check">✓</span>答えがまちがっている・ずれている</button>
-      <button class="choice-btn" data-val="2"><span class="choice-check">✓</span>文章の質・自然さが物足りない</button>
-      <button class="choice-btn" data-val="3"><span class="choice-check">✓</span>検索・最新情報が古い・使えない</button>
-      <button class="choice-btn" data-val="4"><span class="choice-check">✓</span>使える回数の上限で止まる・返事が遅い</button>
-      <button class="choice-btn" data-val="5"><span class="choice-check">✓</span>使い方がむずかしい・画面がわかりにくい</button>
+      <button class="choice-btn" data-val="1"><span class="choice-check">✓</span>まちがった答えが返ってこないか</button>
+      <button class="choice-btn" data-val="2"><span class="choice-check">✓</span>文章が不自然にならないか</button>
+      <button class="choice-btn" data-val="3"><span class="choice-check">✓</span>情報が古くないか</button>
+      <button class="choice-btn" data-val="4"><span class="choice-check">✓</span>回数の上限ですぐ止まらないか</button>
+      <button class="choice-btn" data-val="5"><span class="choice-check">✓</span>使い方がむずかしくないか</button>
+      <button class="choice-btn" data-val="6" data-exclusive="true"><span class="choice-check">✓</span>特にない・まだわからない</button>
     </div>
     <div class="selected-count" id="count-4">1つ以上選んでください</div>
     <div class="nav-row">
@@ -689,7 +691,13 @@ document.querySelectorAll('.question-card').forEach(card => {
           answers[q] = answers[q].filter(v => v !== val);
         } else {
           btn.classList.add('selected');
-          answers[q] = [...answers[q], val];
+          // 「特にない」(data-exclusive)は、ほかの答えと同時に選べない
+          card.querySelectorAll('.choice-btn.selected').forEach(b => {
+            if (b !== btn && (btn.dataset.exclusive === 'true' || b.dataset.exclusive === 'true')) {
+              b.classList.remove('selected');
+            }
+          });
+          answers[q] = [...card.querySelectorAll('.choice-btn.selected')].map(b => parseInt(b.dataset.val));
         }
       }
       refreshCount(q, isSingle);
@@ -742,7 +750,7 @@ setTimeout(() => {
 // 複数選択に対応：選ばれた各値の点数を合算する
 // ─── スコアテーブル（公平・バランス型 / 2026年3月改訂版）───────
 // 設計方針：各AIの実際の強みに基づいて均等配点
-// 理論最大スコア：ChatGPT=24 / Claude=24 / Gemini=26（検索強みを正当評価）
+// 理論最大スコア：ChatGPT=21 / Claude=20 / Gemini=22（2026年10月に計算し直し）
 //
 // Q1 用途
 //   1:アイデア出し    → ChatGPT主力(+3), Gemini得意(+1)
@@ -756,16 +764,17 @@ setTimeout(() => {
 //   3:長い        → Claude主力(+3), ChatGPT(+1)
 //   4:非常に長い  → Claude主力(+3), Gemini(+1)
 //
-// Q4 ストレス
-//   1:精度が低い    → ChatGPT(+3)
-//   2:文章の質      → Claude(+3)
-//   3:最新情報が古い → Gemini(+3)
-//   4:制限で止まる  → ChatGPT(+2), Claude(+2), Gemini(+2)  ← 3社横並び
-//   5:操作が複雑    → Gemini(+2), Claude(+1)
+// Q4 心配なこと（2026年10月に「ストレス」から聞き方を変更。1〜5の中身と点数は同じ）
+//   1:まちがった答え  → ChatGPT(+3)
+//   2:文章が不自然    → Claude(+3)
+//   3:情報が古い      → Gemini(+3)
+//   4:上限で止まる    → ChatGPT(+2), Claude(+2), Gemini(+2)  ← 3社横並び
+//   5:使い方がむずかしい → Gemini(+2), Claude(+1)
+//   6:特にない・まだわからない → 加点なし（ほかの答えと同時に選べない）
 //
 // Q5 ほしい価値
 //   1:発想力・アイデア    → ChatGPT(+2), Gemini(+1)   ← Gemini加点追加
-//   2:論理性・丁寧な解説  → Claude(+2), Gemini(+1)   ← Gemini加点追加
+//   2:論理性・丁寧な解説  → Claude(+2)
 //   3:最新情報・検索連携  → Gemini(+3)
 //   4:会話のテンポ        → ChatGPT(+2), Gemini(+1)   ← Gemini加点追加
 //   5:長文・ニュアンス    → Claude(+3), ChatGPT(+1)   ← ChatGPT加点追加
@@ -773,7 +782,7 @@ setTimeout(() => {
 // Q6 画像・ファイル
 //   1:ほとんどない → 加点なし
 //   2:たまに使う   → ChatGPT(+1), Claude(+1), Gemini(+1) ← Gemini加点追加
-//   3:よく使う     → ChatGPT(+2), Gemini(+2), Claude(+1)
+//   3:よく使う     → ChatGPT(+2), Gemini(+2), Claude(+2)  ← 2026年10月にClaudeも+2に（今のClaudeはすべて画像を読める）
 const SCORE_TABLE = {
   chatgpt: {
     Q1: { 1:3, 2:1, 3:1, 4:2 },
@@ -787,7 +796,7 @@ const SCORE_TABLE = {
     Q3: { 1:0, 2:1, 3:3, 4:3 },
     Q4: { 1:0, 2:3, 3:0, 4:2, 5:1 },
     Q5: { 1:0, 2:2, 3:0, 4:0, 5:3 },
-    Q6: { 1:0, 2:1, 3:1 }
+    Q6: { 1:0, 2:1, 3:2 }
   },
   gemini: {
     Q1: { 1:1, 2:0, 3:3, 4:2 },
@@ -921,7 +930,7 @@ const USER_TYPES = [
     id: 'speedrunner',
     emoji: '⚡',
     name: 'スピード重視タイプです。',
-    desc: '「すぐ使える答え」を求める、仕事ですぐ使いたい人。AIに完璧を求めず、70点の速さで出してもらい自分で仕上げるスタイルが合っています。制限や遅延にストレスを感じやすいなら、有料プランは払ったぶんの効果が大きいです。',
+    desc: '「すぐ使える答え」を求める、仕事ですぐ使いたい人。AIに完璧を求めず、70点の速さで出してもらい自分で仕上げるスタイルが合っています。回数の上限や返事の遅さが気になるなら、有料プランは払ったぶんの効果が大きいです。',
     tags: ['すぐ返事がほしい', '実務優先', 'テンポ命'],
     match: (a) => (a[5]||[]).includes(4) || (a[4]||[]).includes(4)
   },
@@ -952,6 +961,8 @@ const USER_TYPES = [
 ];
 
 function determineUserType(a) {
+  // 2問目で「まだ使ったことがない」(0)を選んだ人は、必ず「これからAIを育てるタイプ」
+  if ((a[2] || []).includes(0)) return USER_TYPES.find(t => t.id === 'beginner');
   for (const type of USER_TYPES) {
     if (type.match(a)) return type;
   }
@@ -981,7 +992,7 @@ function buildAiAdvice(a) {
   let gmTip = 'Googleの検索などとつながっていて、最新のはやりやニュースに強いです。「〜について、最新の情報で」と頼むのがコツです。';
   if (q1.includes(3) || q5.includes(3)) { gmUse = '今まさに起きていることを調べたいときに'; gmTip = 'ネットで調べながら、最新の情報をもとに答えてくれます。「信頼できる情報源を含めて」と添えると、根拠付きの回答が得やすくなります。'; }
   else if (q6.includes(3)) { gmUse = 'ファイル・画像の読み取り・分析に'; gmTip = 'PDFや画像を読み込ませて分析するのが得意です。「この資料の大事な点を1行ずつ並べて」という使い方で、資料読み込みの時間を大幅に削減できます。'; }
-  else if (q4.includes(3)) { gmUse = '最新情報のストレスを解消するために'; gmTip = '「情報が古い」というストレスを最も解消してくれるAIです。Google検索とつながっているので、今の情報を調べられます。'; }
+  else if (q4.includes(3)) { gmUse = '情報が古くないか心配な人に'; gmTip = '情報の古さの心配を、いちばん減らしてくれるAIです。Google検索とつながっているので、今の情報を調べられます。'; }
 
   return [
     { ai: 'ChatGPT', cls: 'chatgpt', use: cgUse, tip: cgTip },
