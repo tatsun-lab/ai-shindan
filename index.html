@@ -833,9 +833,9 @@ function calcScores() {
 }
 
 // ─── プラン定義 ──────────────────────────────────
-// ── プラン情報（2026年3月最新版）──────────────────────
+// ── プラン情報（ChatGPT・Geminiは2026年3月版／Claudeは2026年10月に公式ページで確認）──────────────────────
 // ChatGPT: Free / Go $8 / Plus $20 / Pro $200（最新モデル：GPT-5.2）
-// Claude:  Free / Pro $20 / Max 5x $100 / Max 20x $200（最新モデル：Opus 4.6 / Sonnet 4.6）
+// Claude:  Free / Pro $20 / Max $100〜（Free=Sonnet・Haiku、Pro以上=Opusも利用可）
 // Gemini:  Free / AI Plus ¥1,200 / AI Pro ¥2,900前後 / AI Ultra ¥36,400前後（最新モデル：Gemini 3.1 Pro）
 const PLANS = {
   ChatGPT: {
@@ -845,10 +845,10 @@ const PLANS = {
     4: { name:'ChatGPT Pro',   price:'$200/月', desc:'GPT-5.2の無制限アクセス＋最優先処理。業務ヘビーユーザー向け最上位プラン。個人用途ではまずPlusから試してください。' }
   },
   Claude: {
-    1: { name:'Claude Free',          price:'無料',         desc:'Sonnet 4.6に制限付きでアクセス可能。無料でも高品質な文章生成・長文処理ができます。プロンプトの丁寧さが効果を左右します。' },
+    1: { name:'Claude Free',          price:'無料',         desc:'SonnetとHaikuに制限付きでアクセス可能（最上位のOpusは対象外）。無料でも高品質な文章生成・長文処理ができます。プロンプトの丁寧さが効果を左右します。' },
     2: { name:'Claude Free + 運用工夫', price:'無料〜',     desc:'月1,000円帯にClaudeの有料プランはありません。Google AI Plus（¥1,200）との比較もおすすめです。' },
-    3: { name:'Claude Pro',           price:'$20/月',       desc:'5倍の使用量＋Projects機能・Google Workspace連携がフル解放。文章業務が多いなら最も費用対効果の高いプランです。' },
-    4: { name:'Claude Max 5x',        price:'$100/月',      desc:'Proの5倍の使用量＋Opus 4.6（100万トークンコンテキスト）へのアクセス。ヘビーユーザーはまずここから。Max 20x（$200）は本当の上級者向けです。' }
+    3: { name:'Claude Pro',           price:'$20/月',       desc:'5倍の使用量＋Projects機能・Google Workspace連携がフル解放。最上位のOpusも使えるようになります。文章業務が多いなら最も費用対効果の高いプランです。' },
+    4: { name:'Claude Max 5x',        price:'$100/月',      desc:'Proの5倍の使用量で、上限を気にせず使いたいヘビーユーザー向け（月$100〜）。まずはここから。Max 20x（$200）は本当の上級者向けです。' }
   },
   Gemini: {
     1: { name:'Gemini Free',          price:'無料',         desc:'Google検索連携が強みのGemini。無料でもGemini 3 Proに上限付きでアクセス可能。情報収集AIとして大活躍します。' },
