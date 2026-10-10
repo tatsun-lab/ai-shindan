@@ -293,6 +293,7 @@
     font-size: 12px; font-weight: 600; color: var(--gold);
     border: 1px solid rgba(201,168,76,0.3);
   }
+  .plan-note { margin-top: 12px; font-size: 11px; color: var(--ink-light); line-height: 1.6; }
 
   .pay-card {
     background: var(--warm-white); border: 1px solid var(--border);
@@ -630,6 +631,7 @@
     <div class="plan-name" id="plan-name"></div>
     <div class="plan-desc" id="plan-desc"></div>
     <div class="plan-price" id="plan-price"></div>
+    <div class="plan-note">※料金・プラン内容は変わることがあります（2026年10月時点の情報）。申し込む前に、各社の公式ページで確認してください。</div>
   </div>
 
   <div class="pay-card">
@@ -833,28 +835,30 @@ function calcScores() {
 }
 
 // ─── プラン定義 ──────────────────────────────────
-// ── プラン情報（ChatGPT・Geminiは2026年3月版／Claudeは2026年10月に公式ページで確認）──────────────────────
-// ChatGPT: Free / Go $8 / Plus $20 / Pro $200（最新モデル：GPT-5.2）
+// ── プラン情報（2026年10月更新）──────────────────────
+// Claudeのみ公式ページで確認。ChatGPT・Geminiは公式ページを開けず、ブログ記事の情報で更新（要・公式確認）
+// ChatGPT: Free / Go $8 / Plus $20 / Pro $100 or $200
 // Claude:  Free / Pro $20 / Max $100〜（Free=Sonnet・Haiku、Pro以上=Opusも利用可）
-// Gemini:  Free / AI Plus ¥1,200 / AI Pro ¥2,900前後 / AI Ultra ¥36,400前後（最新モデル：Gemini 3.1 Pro）
+// Gemini:  Free / AI Plus ¥725 / AI Pro ¥2,900前後 / AI Ultra ¥32,000前後
+// モデルのバージョン番号は情報源どうしで食い違うため、あえて書かない
 const PLANS = {
   ChatGPT: {
-    1: { name:'ChatGPT Free',  price:'無料',    desc:'GPT-5.2に制限付きでアクセス可能。無料でも十分スタートできます。プロンプトを工夫するだけで出力の質が大幅に上がります。' },
-    2: { name:'ChatGPT Go',    price:'$8/月',   desc:'GPT-5.2 Instantへの拡張アクセスが月$8で使える低価格プラン。広告が表示される場合がありますが、頻度が上がってきたらまずここから。' },
-    3: { name:'ChatGPT Plus',  price:'$20/月',  desc:'GPT-5.2フルアクセス・DALL-E・コード実行・Deep Researchが解放。毎日使うヘビーユーザーに最適なプランです。' },
-    4: { name:'ChatGPT Pro',   price:'$200/月', desc:'GPT-5.2の無制限アクセス＋最優先処理。業務ヘビーユーザー向け最上位プラン。個人用途ではまずPlusから試してください。' }
+    1: { name:'ChatGPT Free',  price:'無料',    desc:'ChatGPTの標準モデルに制限付きでアクセス可能（広告が表示されます）。無料でも十分スタートできます。プロンプトを工夫するだけで出力の質が大幅に上がります。' },
+    2: { name:'ChatGPT Go',    price:'$8/月',   desc:'無料版の約10倍のメッセージ量が月$8で使える低価格プラン。広告が表示される場合がありますが、頻度が上がってきたらまずここから。' },
+    3: { name:'ChatGPT Plus',  price:'$20/月',  desc:'上位モデルの利用枠が広がり、画像生成・コード実行・Deep Researchも使えます。毎日使うヘビーユーザーに最適なプランです。' },
+    4: { name:'ChatGPT Pro',   price:'$100〜$200/月', desc:'Plusの5倍使える月$100と、20倍使える月$200の2段階。業務ヘビーユーザー向けの最上位プランです。個人用途ではまずPlusから試してください。' }
   },
   Claude: {
     1: { name:'Claude Free',          price:'無料',         desc:'SonnetとHaikuに制限付きでアクセス可能（最上位のOpusは対象外）。無料でも高品質な文章生成・長文処理ができます。プロンプトの丁寧さが効果を左右します。' },
-    2: { name:'Claude Free + 運用工夫', price:'無料〜',     desc:'月1,000円帯にClaudeの有料プランはありません。Google AI Plus（¥1,200）との比較もおすすめです。' },
+    2: { name:'Claude Free + 運用工夫', price:'無料〜',     desc:'月1,000円帯にClaudeの有料プランはありません。Google AI Plus（¥725前後）との比較もおすすめです。' },
     3: { name:'Claude Pro',           price:'$20/月',       desc:'5倍の使用量＋Projects機能・Google Workspace連携がフル解放。最上位のOpusも使えるようになります。文章業務が多いなら最も費用対効果の高いプランです。' },
     4: { name:'Claude Max 5x',        price:'$100/月',      desc:'Proの5倍の使用量で、上限を気にせず使いたいヘビーユーザー向け（月$100〜）。まずはここから。Max 20x（$200）は本当の上級者向けです。' }
   },
   Gemini: {
-    1: { name:'Gemini Free',          price:'無料',         desc:'Google検索連携が強みのGemini。無料でもGemini 3 Proに上限付きでアクセス可能。情報収集AIとして大活躍します。' },
-    2: { name:'Google AI Plus',       price:'¥1,200/月',    desc:'コスパ最良のエントリー有料プラン。Gemini 3.1 Proへのアクセス拡大＋200GBストレージ付き。まず試すならここから。' },
-    3: { name:'Google AI Pro',        price:'¥2,900/月前後', desc:'Gemini 3.1 Proフルアクセス＋Deep Research・NotebookLM Plus・Workspace連携が強化される主力プランです。' },
-    4: { name:'Google AI Ultra',      price:'¥36,400/月前後', desc:'最上位プラン。動画生成Veo 3.1・30TBストレージ・YouTube Premium付き。個人では過剰になりやすいため、まずAI Proから検討を。' }
+    1: { name:'Gemini Free',          price:'無料',         desc:'Google検索連携が強みのGemini。無料でもGeminiの上位モデルに上限付きでアクセス可能。情報収集AIとして大活躍します。' },
+    2: { name:'Google AI Plus',       price:'¥725/月前後',  desc:'コスパ最良のエントリー有料プラン。Geminiの上位モデルへのアクセス拡大＋400GBストレージ付き。まず試すならここから。' },
+    3: { name:'Google AI Pro',        price:'¥2,900/月前後', desc:'Geminiの上位モデルをフルに使え、Deep Research・NotebookLM Plus・Workspace連携が強化される主力プランです。' },
+    4: { name:'Google AI Ultra',      price:'¥32,000/月前後', desc:'最上位プラン。動画生成などの最上位機能と大容量ストレージ付き。個人では過剰になりやすいため、まずAI Proから検討を。' }
   }
 };
 
@@ -965,7 +969,7 @@ function buildAiAdvice(a) {
   // ChatGPT アドバイス
   let cgUse = 'アイデア出し・ブレストのたたき台に';
   let cgTip = '「10個アイデアを出して、それぞれ一行で」のように量と形式を指定すると、ChatGPTの発想力が最大限に活きます。';
-  if (q1.includes(4)) { cgUse = '画像生成のプロンプト作りに'; cgTip = 'DALL-Eと連携してビジュアル制作ができます。「〜のスタイルで、〜の雰囲気で」と詳細に指定するほど精度が上がります。'; }
+  if (q1.includes(4)) { cgUse = '画像生成のプロンプト作りに'; cgTip = 'ChatGPTの画像生成でビジュアル制作ができます。「〜のスタイルで、〜の雰囲気で」と詳細に指定するほど精度が上がります。'; }
   else if (q3.some(v=>v<=2) && q5.includes(4)) { cgUse = '短文・会話のテンポ重視で'; cgTip = 'レスポンスが速く、気軽に話しかけやすい。「もっとカジュアルに」「箇条書きで」など追加指示への反応も素直です。'; }
   else if (q4.includes(1)) { cgUse = '精度の高い回答が必要な作業に'; cgTip = 'プロンプトに「ステップバイステップで考えて」を入れると、精度が大きく向上します。役割設定（「あなたは〜の専門家です」）も効果的です。'; }
 
